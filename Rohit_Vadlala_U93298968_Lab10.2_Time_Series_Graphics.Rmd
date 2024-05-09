@@ -1,0 +1,310 @@
+---
+title: "Lab 10.2: Time Series Graphics"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+
+library(tidyverse)
+library(oilabs)
+library(fpp3)
+library(ggplot2)
+library(dplyr)
+library(USgas)
+library(readr)
+library(readxl)
+data(gafa_stock)
+
+data("aus_production")
+data("pelt")
+data("gafa_stock")
+data("vic_elec")
+```
+
+
+
+### Exercise 1: 
+
+Explore the following four time series: Bricks from aus_production, Lynx from pelt, Close from gafa_stock, Demand from vic_elec.
+
+### Exercise 1-A:
+
+```{r}
+help("aus_production")
+```
+
+
+### Exercise 1-B:
+
+
+Aus_production occurs either quarterly or every three months. Pelt happens exactly once every twelve months, or once a year. 
+The fact that GAFA stock trades every day suggests that it is active every day. 
+Vic_elec is examined every 30 minutes due to half-hourly monitoring.
+
+### Exercise 1(c):
+
+
+```{r}
+
+autoplot(aus_production, Bricks) + ggtitle("Quarterly Production of Bricks in Australia")
+autoplot(pelt, Lynx) + ggtitle("Canadian Lync Pelts traded 1845 - 1935")
+autoplot(gafa_stock, Close) + ggtitle("Closing GAFA Stock Prices from 2014 - 2018")
+autoplot(vic_elec, Demand) + ggtitle("Electricity Demand for Victoria, Australia")
+```
+
+
+### Exercise 1(d):
+
+```{r}
+library(ggplot2)
+
+autoplot(vic_elec, color = "black") + labs(title = "Electricity Demand in Victoria") + ylab("Demand (MW)")
+```
+
+
+
+### Exercise 2:
+
+```{r}
+data(gafa_stock)
+gafa_stock %>%
+  group_by(Symbol) %>%
+  filter(Close == max(Close)) %>%
+  select(Symbol, Date, Close)
+```
+
+
+### Exercise 3:
+
+
+```{r}
+#a.You can read the data into R with the following script:
+
+tute1 <- readr::read_csv("C:/Users/vadla/Downloads/tute1.csv")
+View(tute1)
+
+#b.Convert the data to time series
+
+mytimeseries <- tute1 |>
+  mutate(Quarter = yearquarter(Quarter)) |>
+  as_tsibble(index = Quarter)
+
+#c.Construct time series plots of each of the three series
+mytimeseries |>
+  pivot_longer(-Quarter) |>
+  ggplot(aes(x = Quarter, y = value, colour = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y")
+```
+```{r}
+mytimeseries %>%
+  pivot_longer(-Quarter) %>%
+  ggplot(aes(x = Quarter, y = value, colour = name)) + geom_line()
+```
+
+
+The interpretation of the plot becomes difficult, especially while working with a series that has a clear scale or tendency.
+
+
+### Exercise 4
+
+The US gas package contains data on the demand for natural gas in the US.
+
+a)Install the USgas package.
+b)Create a tsibble from us_total with year as the index and state as the key.
+c)Plot the annual natural gas consumption by state for the New England area (comprising the states of Maine, Vermont, New Hampshire, Massachusetts, Connecticut and Rhode Island).
+
+```{r}
+data("us_total")
+library(USgas)
+us_total_tsibble <- as_tsibble(us_total, key = state, index = year)
+new_england_states <-
+  c("Maine",
+    "Vermont",
+    "New Hampshire",
+    "Massachusetts",
+    "Connecticut",
+    "Rhode Island")
+
+ne_gas_data <- us_total_tsibble %>%
+  filter(state %in% new_england_states)
+ggplot(ne_gas_data, aes(x = year, y = y, color = state)) +
+  geom_line() +
+  labs(title = "Annual Natural Gas Consumption in New England States",
+       x = "Year",
+       y = "Natural Gas Consumption")
+```
+
+
+
+### Exercise 5
+
+Overall, the most journeys were made when visiting Sydney and spending overnight.
+
+```{r}
+
+#a
+tourism_data <- readxl::read_excel("C:/Users/vadla/Downloads/tourism.xlsx")
+#b
+tourism_data <- tourism_data %>%
+  mutate(Quarter = yearquarter(Quarter)) %>%
+  as_tsibble(index = Quarter,
+             key = c("Region", "State", "Purpose"))
+#c
+as_tibble(tourism_data) %>%
+  group_by(Region, Purpose) %>%
+  summarize(avg_trips = mean(Trips)) %>%
+  arrange(desc(avg_trips), by_group = TRUE)
+
+#d
+new_tibble(tourism_data) %>%
+  group_by(Quarter, State) %>%
+  summarize(`Total Trips` = sum(Trips)) %>%
+  tsibble(index = Quarter,
+          key = State)
+```
+
+
+
+### Exercise 6
+
+From the graphs, i can see that the graphs of New Zealand and Japan are unusual. As the graph of Japan is decreasing at a rapid pace after reaching a peak and the graph of New Zealand is continuously increasing through out the quarters.
+
+```{r}
+autoplot(aus_arrivals) +
+  xlab("Year") + ylab("") +
+  ggtitle("Total Quarterly Arrivals to Australia")
+gg_season(aus_arrivals)
+gg_subseries(aus_arrivals)
+```
+
+
+### Exercise 7
+
+
+This time series has a cyclical pattern that seems to be accompanied by a trend that is upward. Strong seasonal tendencies are shown by the seasonal plot; often, a significant peak is observed in December, followed by a dip in February. The seasonal component series offers another perspective by displaying the average values for each month. It's interesting to see that turnover rose dramatically in November and December before falling in December and February. There was also a little decrease from January to February.
+
+
+
+```{r}
+set.seed(12345678)
+myseries <- aus_retail |>
+  filter(`Series ID` == sample(aus_retail$`Series ID`,1))
+```
+
+
+```{r}
+set.seed(42)
+myseries <- aus_retail %>%
+  filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
+autoplot(myseries, Turnover)
+myseries %>% gg_season(Turnover)
+myseries %>% gg_subseries(Turnover)
+myseries %>% gg_lag(Turnover, geom = "point")
+myseries %>% ACF(Turnover) %>% autoplot()
+```
+
+
+
+
+### Exercise 8
+
+
+A closer look of the extended time series reveals that certain years contain fewer data points. That being said, it is evident that these peaks and troughs happen frequently enough that it is easy to categorize them as cyclical periods or durations when they do occur.
+
+
+```{r}
+Private_employ <- us_employment %>%
+  filter(Title == "Total Private")
+Private_employ %>% autoplot(Employed)
+Private_employ %>% gg_season(Employed)
+Private_employ %>% gg_subseries(Employed)
+Private_employ %>% gg_lag(Employed)
+Private_employ %>% ACF(Employed)
+aus_production %>% autoplot(Bricks)
+aus_production %>% gg_season(Bricks)
+aus_production %>% gg_subseries(Bricks)
+aus_production %>% gg_lag(Bricks)
+aus_production %>% ACF(Bricks)
+pelt %>% autoplot(Hare)
+pelt %>% gg_subseries(Hare)
+pelt %>% gg_lag(Hare)
+pelt %>% ACF(Hare)
+H02 <- PBS %>% filter(ATC2 == "H02")
+H02 %>% autoplot(Cost)
+H02 %>% gg_season(Cost)
+H02 %>% gg_subseries(Cost)
+H02 %>% ACF(Cost)
+us_gasoline %>% autoplot(Barrels)
+us_gasoline %>% gg_season(Barrels)
+us_gasoline %>% gg_subseries(Barrels)
+us_gasoline %>% gg_lag(Barrels)
+us_gasoline %>% ACF(Barrels)
+```
+ 
+ 
+
+ 
+### Exercise 9
+
+     1 (Daily temperature of cow) time plot matches with B (ACF plot)
+     2 (Monthly accidental deaths) time plot matches with A (ACF plot)
+     3 (Monthly air passengers) time plot matches with D (ACF plot)
+     4 (Annual Mink trappings) time plot matches with C (ACF plot)
+
+
+
+### Exercise 10
+
+
+Spikes are not white noise since they are crossing the blue line. The ACF plot might reveal more information about the temporal structure of the data if you utilize a longer period of data. Longer-term patterns or trends that were hidden in a shorter dataset may become apparent. The ACF plot may have more lags to explore with a longer data period, which can help in identifying more intricate patterns or seasonality.
+
+
+```{r}
+Victoria_Pig <- aus_livestock %>%
+  filter(State == "Victoria",
+         Animal == "Pigs",
+         between(year(Month), 1990, 1995))
+Victoria_Pig %>% ACF(Count) %>% autoplot()
+```
+
+
+
+
+
+### Exercise 11
+
+In order to keep "GOOG" at the same interval in every row when applying a filter, we must modify our index such that it is based on the consecutive row number. The data series does not contain any characteristics that resemble white noise.
+
+
+```{r}
+dgoog <- gafa_stock |>
+  filter(Symbol == "GOOG", year(Date) >= 2018) |>
+  mutate(trading_day = row_number()) |>
+  update_tsibble(index = trading_day, regular = TRUE) |>
+  mutate(diff = difference(Close))
+```
+
+
+```{r}
+dgoog <- gafa_stock |>
+  filter(Symbol == "GOOG", year(Date) >= 2018) |>
+  mutate(trading_day = row_number()) |>
+  update_tsibble(index = trading_day, regular = TRUE) |>
+  mutate(diff = difference(Close))
+```
+
+
+```{r}
+datastock <- gafa_stock %>%
+             filter(Symbol == "GOOG") %>%
+             mutate(trading_day = row_number()) %>%
+             update_tsibble(index = trading_day, regular = TRUE)
+
+datastock %>% ACF(difference(Close)) %>% autoplot()
+```
+
+
+

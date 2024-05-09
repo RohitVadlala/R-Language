@@ -1,0 +1,155 @@
+---
+title: "Lab 5.2 Foundations for statistical inference- Confidence intervals"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(oilabs)
+library(infer)
+library(openintro)
+set.seed(42)
+```
+
+
+```{r}
+us_adults <- tibble(
+  climate_change_affects = c(rep("Yes", 62000), rep("No", 38000))
+)
+
+set.seed(42)
+ggplot(us_adults, aes(x = climate_change_affects)) +
+ geom_bar() +
+ labs(
+ x = "", y = "",
+ title = "Do you think climate change is affecting your local community?"
+ ) +
+ coord_flip() 
+us_adults %>%
+  count(climate_change_affects) %>%
+  mutate(p = n /sum(n))
+
+n <- 60
+samp <- us_adults %>%
+  sample_n(size = n)
+```
+
+
+### Exercise 1: 
+
+63.33% adults in my sample think climate change affects their local community.
+```{r}
+set.seed(42)
+us_adults <- tibble(
+  climate_change_affects = c(rep("Yes", 62000), rep("No", 38000))
+)
+
+n <- 60
+samp <- us_adults %>%
+  sample_n(size = n)
+
+samp %>%
+  count(climate_change_affects) %>%
+  mutate(p = n /sum(n))
+```
+
+### Exercise 2:
+
+I don't think the sample proportion of mine would be identical to others, as sample proportions of each would depend on which 60 adults were selected an the seed value to perform sample proportion. The proportions of other student may be bit more or less than my sample proportion.
+
+
+
+### Exercise 3:
+
+95% confidence can be defined as that we are 95% certainty of values.As a result, looking at 95% confidence interval shows that the interval contains a true population percentage with 95% degree of certainty, where 95% region will be shaded and the remaining will not.
+
+```{r}
+samp %>%
+ specify(response = climate_change_affects, success = "Yes") %>%
+ generate(reps = 1000, type = "bootstrap") %>%
+ calculate(stat = "prop") %>%
+ get_ci(level = 0.95)
+```
+
+
+
+### Exercise 4:
+Yes, it do capture the true population proportion of US adults who think climate change affects their local community. Here, confidence interval, ci = (0.61695, 0.62320) which shows the proportion of true population of US adults who believe that the change in the climate affects their local community (0.62)
+
+```{r}
+set.seed(42)
+us_adults %>%
+ specify(response = climate_change_affects, success = "Yes") %>%
+ generate(reps = 1000, type = "bootstrap") %>%
+ calculate(stat = "prop") %>%
+ get_ci(level = 0.95)
+```
+
+### Exercise 5:
+
+I think each student would get a different confidence interval which would be slightly differed, as each one would select a different samples of US adults, but i would estimate that at least 95% of students can be able to represent the true population mean accurately. This can be occurred, due to the fact that there is only a very slight difference between the confidences that each would get and and be able to work in 95% confident level which ultimately clarifies that the we can be 95% confident that the true population proportion would be consisted in the confidence intervals. To conclude with I would anticipate that at least 95% of these intervals could be able to represent the true population accurately.
+
+### Exercise 6:
+
+Out of 60 samples, 57 accurately reflect the true proportion. This means the confidence level is 57/60 * 100 = 95%. Hence, this matches with our 95% confidence interval.
+
+
+```{r}
+set.seed(42)
+library(ggplot2)
+library(knitr)
+include_graphics("/Users/vadla/OneDrive/Desktop/lab 5.png")
+```
+
+
+### Exercise 7:
+
+I have set the confidence level to be 80%, the confidence interval gets narrower. The relation between confidence level and the width of the confidence level are related inversely. When i decrease the confidence level, I am also reducing the probability that the true proportion parameter that would be in the range. As a result, the confidence interval would become more narrower.
+
+
+### Exercise 8:
+
+I am 90% confident that true proportion parameter of US Adults, who think climate change is affecting their local community would fall in the range of 53.33%(0.533) to 73.33%(0.733).
+
+```{r}
+set.seed(42)
+samp %>%
+  specify(response = climate_change_affects, success = "Yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.90)
+```
+
+### Exercise 9:
+
+The 90% confidence interval is what I have set. 56 of the 60 samples accurately reflect the true proportion. The confidence level is thus 56/60*100, representing 93.33%. As a result, it is slightly above the 90% confidence interval I set earlier.
+
+
+### Exercise 10:
+The confidence interval is set at 80%. The confidence interval gets narrower when I lower the confidence level to 80%, which is less than 90%.
+
+I have an 80% level of confidence that the true proportion of US adults who think that climate change affecting the local community is between 56.67% (or 0.566) and 71.67% (or 0.716).
+
+46 of the 60 samples accurately reflect the true proportion. The confidence level is thus 46/60*100, representing 76.66%. Thus, it falls just short of the 80% confidence interval I set.
+
+```{r}
+set.seed(42)
+samp %>%
+  specify(response = climate_change_affects, success = "Yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.80)
+```
+
+### Exercise 11:
+
+As the sample size increases, the width of confidence intervals decreases, and when the sample size decreases, the width of confidence intervals increases. As the more sample we have, less is the spread so the standard error decreases.
+
+### Exercise 12:
+
+
+After testing with different number of bootstrap, I can observe that the width of confidence interval decreases as the bootstrap samples increases. Also the standard error remains unaffected by number of bootstrap samples.
+

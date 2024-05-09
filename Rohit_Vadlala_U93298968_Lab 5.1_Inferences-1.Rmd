@@ -1,0 +1,275 @@
+---
+title: "Lab 5.1: Inferences"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+library(tidyverse)
+library(openintro)
+library(infer)
+
+```
+
+
+
+```{r}
+set.seed(42)
+global_monitor <- tibble(
+  scientist_work = c(rep("Benefits", 80000), rep("Doesn't benefit", 20000))
+)
+
+ggplot(global_monitor, aes(x = scientist_work)) +
+  geom_bar() +
+  labs(
+    x = "", y = "",
+    title = "Do you believe that the work scientists do benefit people like you?"
+  ) +
+  coord_flip()
+
+global_monitor %>%
+  count(scientist_work) %>%
+  mutate(p = n /sum(n))
+
+samp1 <- global_monitor %>%
+  sample_n(50)
+```
+
+
+### Exercise 1
+
+From the below, i can see that the distribution of responses is slightly closer to the population that is in the range of (+/- 8% percentage points or 0.08 point difference).
+
+
+```{r}
+
+ggplot(samp1, aes(x = scientist_work)) +
+  geom_bar() +
+  labs(
+    x = "", y = "",
+    title = "Do you believe that the work scientists do benefit people like you? - Sample1"
+  ) +
+  coord_flip()
+
+samp1 %>%
+  count(scientist_work) %>%
+  mutate(Sample1 = n /sum(n))
+
+samp1 %>%
+  count(scientist_work) %>%
+  mutate(p_hat = n /sum(n))
+
+```
+
+
+### Exercise 2
+
+I do not expect that the sample proportion of the earlier (i.e., exercise 1) would be similar to that of other student's sample.But, I expect that the proportions of both might be a bit similar, but not exactly same, as the sampling process would give different results with multiple iterations.
+
+
+
+### Exercise 3
+
+After taking a second sample “samp2” and comparing it to “samp1” it appears that both samples have big variances in the responses. After taking another 2 samples of size 100 - “samp3”, and size 1000 - “samp4” it appears that the results are a more accurate estimate of the population proportion, especially with the largest sample of size 1000. Since the sample size is larger, the closer the results would be getting to the true population parameter. As the sample size is larger, it would mean the variability to be lesser.
+
+
+```{r}
+set.seed(42)
+
+samp2 <- global_monitor %>%
+  sample_n(50)
+
+samp2 %>%
+  count(scientist_work) %>%
+  mutate(p_hat = n /sum(n))
+
+
+sample_props50 <- global_monitor %>%
+                    rep_sample_n(size = 50, reps = 15000, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Doesn't benefit")
+
+ggplot(data = sample_props50, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(
+    x = "p_hat (Doesn't benefit)",
+    title = "Sampling distribution of p_hat",
+    subtitle = "Sample size = 50, Number of samples = 15000"
+  )
+
+samp3 <- global_monitor %>%
+  sample_n(50)
+
+samp3 %>%
+  count(scientist_work) %>%
+  mutate(p_hat = n /sum(n))
+
+
+sample_props50 <- global_monitor %>%
+                    rep_sample_n(size = 100, reps = 15000, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Doesn't benefit")
+
+ggplot(data = sample_props50, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(
+    x = "p_hat (Doesn't benefit)",
+    title = "Sampling distribution of p_hat",
+    subtitle = "Sample size = 100, Number of samples = 15000"
+  )
+samp4 <- global_monitor %>%
+  sample_n(50)
+
+samp4 %>%
+  count(scientist_work) %>%
+  mutate(p_hat = n /sum(n))
+
+
+sample_props50 <- global_monitor %>%
+                    rep_sample_n(size = 1000, reps = 15000, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Doesn't benefit")
+
+ggplot(data = sample_props50, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(
+    x = "p_hat (Doesn't benefit)",
+    title = "Sampling distribution of p_hat",
+    subtitle = "Sample size = 1000, Number of samples = 15000"
+  )
+```
+
+
+### Exercise 4
+
+
+Here we have considered 15000 samples, which determine that there are 15000 data points are utilized to generate the plot. From the below, the plot is seeming to be mostly normal distribution with a very slightly right skewed (slightly positively skewed one). The center of the distribution is 0.2 around (almost same as population parameter)
+
+
+```{r}
+
+global_monitor %>%
+  sample_n(size = 50, replace = TRUE) %>%
+  count(scientist_work) %>%
+  mutate(p_hat = n /sum(n)) %>%
+  filter(scientist_work == "Doesn't benefit")
+
+ggplot(data = sample_props50, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02)
+
+```
+
+
+### Exercise 5
+
+There are 23 observations in this object. Each observation is a sample proportion that makes up the sampling distribution. Each data point represents a proportion from a sample, collectively forming the sampling distribution. 
+
+```{r}
+set.seed(42)
+sample_props_small <- global_monitor %>% rep_sample_n(size = 10, reps = 25, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Doesn't benefit")
+sample_props_small
+dim(sample_props_small)
+
+ggplot(data = sample_props50, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02)
+
+
+
+
+```
+
+
+### Exercise 6
+
+Observations during simulations:
+
+
+n= 10
+mean= 0.22 standard error= 0.11
+
+n= 50
+mean= 0.2 standard error= 0.06
+
+n= 100
+mean= 0.2 standard error= 0.04
+
+The mean is getting closer to 0.2 (true mean) with the increase in sample number. The standard error is decreasing with the increase in sample size there is lesser variability. When the sample size is large, the distribution appearing to be a normal distribution and when the sample size = 10 then the distribution is seeming to be right skewed/positive skewed.
+
+
+### Exercise 7
+
+The best point estimate, based on the sampling, about 93.34% of people believe that the scientists' work is advantageous.
+
+```{r}
+set.seed(42)
+samp7 <- global_monitor %>%
+  sample_n(15)
+
+samp7 %>%
+  count(scientist_work) %>%
+  mutate(p.hat = n /sum(n))
+
+```
+
+### Exercie 8:
+
+The distribution of p_hat is seeming to be left-skewed or negatively skewed.
+Here, after the sampling the, the estimate is .8017, the estimate very closer to the true population proportion which is 0.8
+
+```{r}
+set.seed(42)
+sample_props15 <- global_monitor %>% rep_sample_n(size = 15, reps = 2000, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Benefits")
+
+ggplot(data = sample_props15, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(
+    x = "p_hat- Benefits)",
+    title = "sampling distribution: p_hat",
+    subtitle = "Sample size = 15, Number of samples = 2000")
+
+mean(sample_props15$p_hat)
+global_monitor %>%
+  count(scientist_work) %>%
+  mutate(p = n /sum(n))
+```
+
+
+### Exercise 9:
+
+Here the distribution is seeming to be normal distribution.
+On the basis of the sampling, the proportion is practically .8, since the sampling distribution's mean is .7984 which is approximately equal to the true proportion.
+
+```{r}
+set.seed(42)
+sample_props150 <- global_monitor %>% rep_sample_n(size = 150, reps = 2000, replace = TRUE) %>%
+                    count(scientist_work) %>%
+                    mutate(p_hat = n /sum(n)) %>%
+                    filter(scientist_work == "Benefits")
+
+ggplot(data = sample_props150, aes(x = p_hat)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(
+    x = "p_hat (Benefits)",
+    title = "Sampling distribution of p_hat",
+    subtitle = "Sample size = 150, Number of samples = 2000")
+
+mean(sample_props150$p_hat)
+```
+
+### Exercise 10:
+
+The sample distribution with n= 150 has a narrower spread than the sampling distribution with n= 15. Because there is less variation in the data, I would wanted to estimate the proportion that comes from this distribution with a narrower spread. This would imply that the sample figure is more likely to reflect the true proportion.
+
+
+
+

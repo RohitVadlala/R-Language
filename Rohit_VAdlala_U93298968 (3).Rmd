@@ -1,0 +1,154 @@
+---
+title: "Lab 3: Probability"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+library(tidyverse)
+library(openintro)
+```
+```{r}
+set.seed(42)
+glimpse(kobe_basket)
+kobe_basket <- kobe_basket
+```
+
+### Exercise 1
+The streak length means that the number of Hit(H) occur before getting a Miss (M) in the sequence of occurences that are separated by | to signify it as a streak. The streak length of 1 means that there is 1 Hit(H) in a streak that is before getting a Miss(M) that is there are 1 (H) and 1 (M) in the streak length of 1. In streak length of 0, there are no Hit(H) before getting a Miss (M) that is there are 0 (H) and 1 (M). 
+
+From the bar graph, streak length of 0 is the highest and streak length of 4 is the lowest.
+
+
+```{r}
+set.seed(42)
+kobe_streak <- calc_streak(kobe_basket$shot)
+ggplot(kobe_streak, aes(x=length)) +
+  geom_bar()
+```
+
+
+### Exercise 2
+
+From the above bar graph(Exercise 1), it can be highlighted that the most number of data points fall in the range of 0 to 1. It can be said to be a positive/right skewed distribution. The most occurred streak length was 0 and the longest streak length occurred is 4.
+
+median = 0
+
+```{r}
+set.seed(42)
+kobe_streak %>%
+  summarise(Median = median(length),
+            Min = min(length),
+            Max = max(length))
+table(kobe_streak)
+coin_outcomes <- c("heads", "tails")
+sample(coin_outcomes, size = 1, replace = TRUE)
+sim_fair_coin <- sample(coin_outcomes, size = 100, replace = TRUE)
+sim_fair_coin
+table(sim_fair_coin)
+sim_unfair_coin <- sample(coin_outcomes, size = 100, replace = TRUE,
+                        prob = c(0.2, 0.8))
+
+```
+
+
+### Exercise 3
+
+In my simulation of flipping the unfair coin 100 times, i have got:
+heads for 23 times and tails for 77 times.
+
+```{r}
+set.seed(42)
+sim_unfair_coin1 <- sample(coin_outcomes, size = 100, replace = TRUE,
+                        prob = c(0.2, 0.8))
+sim_unfair_coin1
+table(sim_unfair_coin1)
+shot_outcomes <- c("H", "M")
+sim_basket <- sample(shot_outcomes, size = 1, replace = TRUE)
+
+```
+
+
+### Exercise 4
+
+In the sample function we have to add a probability argument with the probability of hitting should be kept as 45% and change the size to 133. as mentioned below sample(shot_outcomes, size = 133, replace = TRUE, prob = c(0.45, 0.55)
+
+The number of times hit and miss occurred:  H 69, M 64
+
+```{r}
+set.seed(42)
+shot_outcomes <- c("H", "M")
+sim_basket <- sample(shot_outcomes, size = 133, replace = TRUE,
+                     prob = c(0.45, 0.55))
+table(sim_basket)
+```
+
+
+### Exercise 5
+
+sim_streak = 65*1 (65 rows and 1 column)
+
+```{r}
+set.seed(42)
+sim_streak <- calc_streak(sim_basket)
+sim_streak
+```
+
+
+### Exercise 6
+
+From the bar graph, the distribution is looking in similar with kobe_streak data frame. 
+The graph is positive/right skewed distribution. the streak length 0 occurred for the most number of times and the longest streak length is 5.
+
+```{r}
+set.seed(42)
+ggplot(sim_streak, aes(x=length)) +
+  geom_bar()
+
+
+```
+
+
+### Exercise 7
+
+when i run the simulation of the independent shooter for a second time with different set.seed() value, I could see that both the distributions are somewhat similar. They are unimodal right skew/positively skewed. 
+both the distributions have same mode as 0 (most frequent), same longest streak length as 5.
+
+```{r}
+set.seed(500)
+ggplot(sim_streak, aes(x=length)) +
+  geom_bar()
+
+```
+
+
+### Exercise 8
+
+For kobe bryant distribution: 
+Median: 0
+Mean: 0
+Max: 4
+Mean: 0.7631
+
+For simulated shooter distribution:
+median: 0
+min: 0
+max: 5
+mean: 1.0615
+
+i think hot hand model fits with kobe's shooting patterns.
+```{r}
+set.seed(42)
+kobe_streak %>%
+  summarise(Median_kobe = median(length),
+            Min_kobe = min(length),
+            Max_kobe = max(length),
+            Mean_kobe = mean(length))
+sim_streak %>%
+  summarise(Median_sim = median(length),
+            Min_sim = min(length),
+            Max_sim = max(length),
+            Mean_sim = mean(length))
+```
+

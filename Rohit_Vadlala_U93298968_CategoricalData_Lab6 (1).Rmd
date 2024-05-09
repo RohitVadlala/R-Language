@@ -1,0 +1,314 @@
+---
+title: "Lab 6: Inference for categorical data"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+library(tidyverse)
+library(openintro)
+library(dplyr)
+library(infer)
+```
+
+
+```{r}
+data("yrbss")
+```
+
+
+
+### Exercise 1
+
+4792 reported 0 days of texting and driving. On days 1-2, 925 were reported. On days 3-5, 493 were reported. On days 6-9, 311 were reported. On days 10-19, 373 were reported. On days 20-29, 298 were reported. On day 30, 827 were reported.
+
+
+
+```{r}
+set.seed(42)
+count_each <-yrbss%>%
+  count(text_while_driving_30d)
+count_each
+```
+
+
+### Exercise 2
+
+The range if in between 0.06519683 to	0.07750269	which represents the proportion of people who texted while driving every day in past 30 days and never wear helmets.
+
+```{r}
+set.seed(42)
+no_helmet <- yrbss %>%
+  filter(helmet_12m == "never")
+no_helmet <- no_helmet %>%
+  mutate(text_ind = ifelse(text_while_driving_30d == "30", "yes", "no"))
+
+no_helmet%>%
+  count(text_ind)
+
+no_helmet <- yrbss %>%
+  filter(helmet_12m == "never")
+
+no_helmet$text_while_driving_30d
+
+no_helmet <- no_helmet %>%  drop_na(text_while_driving_30d) %>% 
+  mutate(text_ind = ifelse(text_while_driving_30d == "30", "yes", "no"))
+
+no_helmet%>%
+  count(text_ind)
+
+```
+
+
+```{r}
+set.seed(42)
+no_helmet %>%
+  specify(response = text_ind, success = "yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.95)
+```
+
+
+
+
+
+### Exercise 3
+
+The Margin of error = 0.006227895
+
+```{r}
+set.seed(42)
+lower_ci <- 0.06520068
+upper_ci <- 0.07765647	
+
+
+marginoferror <- (upper_ci - lower_ci) / 2  
+
+marginoferror
+```
+
+
+
+### Exercise 4
+
+
+CI for the proportion of people, hispanic for a sample size of 13352 is (0.2489515, 0.2640073) and do have the margin of error 0.0075279(0.75%).
+
+CI for the proportion of people, watch TV for 5+ hours for a sample size of 13245 is (0.1149849	0.1261608) and do have the margin of error 0.00558795(0.55%).
+
+```{r}
+glimpse(yrbss)
+
+set.seed(42)
+
+yrbss %>%
+  count(hispanic) %>%
+  mutate(p = n /sum(n))
+
+hispanic <- yrbss %>% drop_na(hispanic) %>% 
+  mutate(text_ind = ifelse(hispanic == "hispanic", "Yes", "No"))
+
+hispanic %>%
+  specify(response = text_ind, success = "Yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.95)
+
+n<- 13352
+p <- seq(from = 0, to = 1, by = 0.01)
+me <- 2 * sqrt(p * (1 - p)/n)
+me
+
+margin_error = (0.2640073 - 0.2489515	)/2
+margin_error
+
+yrbss %>%
+  count(hours_tv_per_school_day) %>%
+  mutate(p = n /sum(n))
+
+tv_day_5 <- yrbss %>% drop_na(hours_tv_per_school_day) %>% 
+  mutate(text_ind = ifelse(hours_tv_per_school_day == "5+", "Yes", "No"))
+
+tv_day_5 %>%
+  specify(response = text_ind, success = "Yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.95)
+
+n<- 13245
+p <- seq(from = 0, to = 1, by = 0.01)
+me <- 2 * sqrt(p * (1 - p)/n)
+me
+
+margin_error = (0.1261608 - 0.1149849	)/2
+margin_error
+
+```
+
+
+### Exercise 5
+
+Here the plot is looking to be uni-modal and symmetric one. It also represents that the margin of error is getting maxmized at 0.5 population proportion. The relationship between margin of error and square root of sample size is inversely related. When the population proportion is closer to 0 or 1 then the margin of error is getting disappeared.
+
+
+```{r}
+n <- 1000
+p <- seq(from = 0, to = 1, by = 0.01)
+me <- 2 * sqrt(p * (1 - p)/n)
+dd <- data.frame(p = p, me = me)
+ggplot(data = dd, aes(x = p, y = me)) + 
+  geom_line() +
+  labs(x = "population proportion", y = "margin of error")
+
+n <- 10
+p <- seq(from = 0, to = 1, by = 0.01)
+me <- 2 * sqrt(p * (1 - p)/n)
+dd <- data.frame(p = p, me = me)
+ggplot(data = dd, aes(x = p, y = me)) + 
+  geom_line() +
+  labs(x = "Population Proportion", y = "Margin of Error")
+
+```
+
+
+### Exercise 6
+
+With reps = 1000, it is demonstrated a plot that is closer to the  normally distributed one. Its center is about 0.1 or the p-value
+
+```{r}
+set.seed(42)
+n <- 300 
+p <- 0.1
+reps = 1000
+samples <- replicate(reps, rbinom(1,n,p))
+hist(samples,
+     #ylim = c(0, 1.4),
+     col = "lightblue",
+     freq = F,
+     breaks = 25)
+curve(dnorm(x, mean=n*p, sd=sqrt(p*(1-p)*n)),
+      col = "brown",
+      lwd = "2",
+      add = T)
+
+sample.proportions <- samples / n
+hist(sample.proportions,
+     #ylim = c(0, 1.4),
+     col = "lightblue",
+     freq = F,
+     breaks = 25)
+curve(dnorm(x, mean=p, sd=sqrt(p*(1-p)/n)),
+      col = "brown",
+      lwd = "2",
+      add = T)
+```
+
+
+### Exercise 7
+
+With the change in the value of p-value to 0.5 with keeping reps = 1000 gives a more evenly distributed histogram and a new p-value can be recorded.
+
+
+```{r}
+set.seed(42)
+n <- 300 
+p <- 0.5
+samples <- replicate(reps, rbinom(1,n,p))
+hist(samples,
+     #ylim = c(0, 1.4),
+     col = "lightblue",
+     freq = F,
+     breaks = 25)
+curve(dnorm(x, mean=n*p, sd=sqrt(p*(1-p)*n)),
+      col = "brown",
+      lwd = "2",
+      add = T)
+
+sample.proportions <- samples / n
+hist(sample.proportions,
+     #ylim = c(0, 1.4),
+     col = "lightblue",
+     freq = F,
+     breaks = 25)
+curve(dnorm(x, mean=p, sd=sqrt(p*(1-p)/n)),
+      col = "brown",
+      lwd = "2",
+      add = T)
+
+```
+
+
+
+### Exercise 8
+
+keeping reps = 1000 and increasing n, here it demonstrated a more bell-shaped histogram. The center = 0.1, or the p-value. With the greater sample size smoother is the distribution of p_hat.
+
+```{r}
+set.seed(42)
+n <- 1000 
+p <- 0.1
+samples <- replicate(reps, rbinom(1,n,p))
+hist(samples,
+     #ylim = c(0, 1.4),
+     col = "lightblue",
+     freq = F,
+     breaks = 25)
+curve(dnorm(x, mean=n*p, sd=sqrt(p*(1-p)*n)),
+      col = "brown",
+      lwd = "2",
+      add = T)
+
+sample.proportions <- samples / n
+hist(sample.proportions,
+     #ylim = c(0, 1.4),
+     col = "lightblue",
+     freq = F,
+     breaks = 25)
+curve(dnorm(x, mean=p, sd=sqrt(p*(1-p)/n)),
+      col = "brown",
+      lwd = "2",
+      add = T)
+```
+
+
+### Exercise 9
+
+Null hypothesis: There is no convincing evidence that those who sleep 10+ hours every day are more likely to strength train every day of the week Alternative hypothesis. There is convincing evidence that those who sleep 10+ hours every day are more likely to strength train every day of the week.
+Confidence interval : 0.224359	to 0.3205128	
+
+```{r}
+set.seed(42)
+hourlysleep <- yrbss  %>%
+  filter(school_night_hours_sleep == "10+")
+
+hourlysleep <- hourlysleep %>%
+  mutate(strength = ifelse(strength_training_7d == "7", "yes", "no"))
+
+hourlysleep %>% filter(strength != "unknown") |>
+  specify(response = strength, success = "yes") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "prop") %>%
+  get_ci(level = 0.95)
+```
+
+
+### Exercise 10
+
+The type 1 error can be considered as a false positive and would occur when the correct null hypothesis is rejected.I believe there would be a 5% probability of observing a change when the alpha is set to 0.05 
+
+
+
+### Exercise 11
+
+The Sample size would be of at least 9604.
+
+```{r}
+P <-0.5
+z <-1.96
+MarginError <-0.01
+n<- z^2*P*(1-P)/MarginError^2
+n
+```
+

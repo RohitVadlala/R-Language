@@ -1,0 +1,226 @@
+---
+title: "Lab 8: Introduction to Linear Regression"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+library(tidyverse)
+library(openintro)
+library(statsr)
+library(broom)
+```
+
+
+```{r}
+data(hfi)
+```
+
+
+### Exercise 1
+
+The dataset has 1,458 rows and 123 columns. Each row corresponds to a country. The data indicates the count of individuals related to each variable for every nation.
+
+```{r}
+dim(hfi)
+head(hfi)
+nrow(hfi)
+ncol(hfi)
+```
+
+
+### Exercise 2
+
+
+The hfi_2016 dataframe contains data from the year 2016. I have chosen every variable from the data frame and stored the corresponding data in the hfi_2016 variable.
+
+
+```{r}
+hfi_2016 <- hfi %>%
+  filter(year > 2015) 
+hfi_2016
+```
+
+
+### Exercise 3
+
+Considering that the primary objective of a scatterplot is to visualize and depict the relationship between two quantitative variables, it would be appropriate to use one here. Even though many data points seem scattered, there seems to be a hint of a linear relationship. In this context, x represents pf_expression_control. Upon initial examination of the graph, I'd be hesitant to employ a linear model to forecast the personal freedom score.
+
+```{r}
+hfi_2016 %>%
+  ggplot(aes(x = pf_expression_control, y = pf_score)) +
+  geom_point() +
+  labs(x = "Expression Control",
+       y = "Pf Score",
+       title = "Pf Score as a Function of Pf Expression Control") +
+  theme(plot.title = element_text(hjust = 0.50)) +
+  scale_x_continuous(breaks = seq(0, 10, 1))
+
+```
+
+
+### Exercise 4
+
+The graph from the prior exercise appears to show a positive linear correlation between the two variables. As both the pf_score and pf_expression_control rise, the residuals diminish in size. With a correlation coefficient of 0.845 and an R-Square value nearing 1, this suggests a robust positive linear association.
+
+```{r}
+hfi_2016 %>%
+  summarise(cor(pf_expression_control, pf_score))
+
+```
+
+```{r}
+R2_hfi <- (cor(hfi_2016$pf_expression_control, hfi_2016$pf_score))^2
+R2_hfi
+```
+
+
+### Exercise 5
+
+Using the plot_ss method, after trying 2 or 3 times, I achieved the lowest sum of squares value, which is 102.213.
+
+```{r}
+plot_ss(x = pf_expression_control, y = pf_score, data = hfi_2016, showSquares = TRUE)
+
+```
+
+
+### Exercise 6
+
+The regression line equation is given as: y_hat = 4.28 + 0.542x. In terms of this problem, it can be expressed as: average hf_score = 4.28 + (0.542 multiplied by pf_expression_control). Within this dataset, when pf_expression_control approaches 0, there's a rise in political influence on the media. When pf_expression_control is at 0, the average hf_score stands at 4.28. For every 1 unit increase in pf_expression_control, the average hf_score climbs by 0.542.
+
+```{r}
+m1 <- lm(pf_score ~ pf_expression_control, data = hfi_2016)
+```
+
+```{r}
+tidy(m1)
+```
+
+```{r}
+glance(m1)
+```
+
+
+### Exercise 7
+
+A rating of 3 was given to pf_exp_control, resulting in a predicted pf_score of 5.906. The actual observation for a pf_exp_control of 3 had a pf_score of 5.465, which is near the predicted value of 5.906. The residual for this observation is calculated as 5.465 - 5.906, which equals -0.44. This means the prediction exceeded the actual value by 0.44.
+
+```{r}
+pf_exp_control <- 3
+pf_score6 <- 4.28 + 0.542 * pf_exp_control
+pf_score6
+```
+```{r}
+hfi_2016 %>%
+  group_by(pf_score) %>%
+  filter(pf_expression_control == 3.0)
+```
+
+### Exercise 8
+
+There's no clear pattern observable in the residuals plot, suggesting a linear relationship between the two variables. The data points appear to be distributed randomly.
+
+```{r}
+m1_aug <- augment(m1)
+```
+
+
+```{r}
+ggplot(data = m1_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "blue") +
+  xlab("Fitted values") +
+  ylab("Residuals")
+```
+
+### Exercise 9 :
+
+The histogram of residuals presented below demonstrates that they are roughly normally distributed. Yet, there's a subtle lean to the left. In general, the condition for normal residuals seems to be mostly satisfied.
+
+```{r}
+ggplot(data = m1_aug, aes(x = .resid)) +
+  geom_histogram(binwidth = 0.25) +
+  xlab("Residuals")
+```
+
+### Exercise 10:
+
+The provided Residuals vs Fitted chart indicates that the points are distributed around the zero mark. It seems the condition for constant variance has been satisfied.
+
+```{r}
+ggplot(data = m1, aes(sample = .resid)) +
+  stat_qq() +
+  labs(
+    x = "Residuals",
+    y = "Fitted")
+```
+
+### Exercise 11:
+
+The connection between these two variables appears to be linear. There's a positive correlation, with the hf_score rising as pf_ss goes up.
+
+```{r}
+ggplot(data = hfi, aes(x = pf_ss, y = pf_score)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(x = "Security and Safety Score",
+       y = "Human Freedom Ranking")
+```
+
+### Exercise 12:
+By looking at the pf_expression_control and pf_score model R-Square values, we can see that 63.42% of the data matches the regression model.
+Model using pf_ss and pf_score data: The regression fits 55.07% of the data.
+The pf_expression_control and pf_score models have greater R-Square values because they indiciate less variance.
+ 
+```{r}
+lmPF <- lm(pf_score ~ pf_expression_control, data = hfi)
+summary(lmPF)
+```
+```{r}
+lmPF2 <- lm(pf_score ~ pf_ss, hfi)
+summary(lmPF2)
+```
+
+
+### Exercise 13:
+Linearity: The residuals plot shows no discernible pattern, proving that there is a linear connection between the two variables. The points do get increasingly concentrated in one place as Fitted Values rise. This may also be observed (as pf_ss rises) in the scatterplot. Nevertheless, the points appear to be dispersed randomly overall.
+Normality: The residuals histogram appears to be somewhat normal, with the majority of the residuals concentrated in the centre.
+
+```{r}
+m2_aug <- augment(lmPF2)
+
+```
+
+```{r}
+ggplot(data = m2_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "blue") +
+  labs(
+    x ="Fitted values", 
+    y ="Residuals",
+    title = "Plot of Residuals") 
+```
+```{r}
+ggplot(data = m2_aug, aes(x = .resid)) +
+  geom_histogram(binwidth = 0.25) +
+  labs(
+    x = "Residuals",
+    y = "Count",
+    title = "Histogram of Residuals")
+```
+
+
+### Exercise 14:
+
+1.I was particularly shocked by the connection between the integrity of the judicial system and the defense of property rights. 
+2.At first, I assumed a strong relationship, believing that variations in the protection of property rights would be significantly explained by the integrity of the legal system. But this isn't the case, in contrast to what I had anticipated. 
+3. The model's R-squared value is lower than that of earlier models. For more information on this regression model, which looks at this specific relationship, please see the summary and model diagnostics.
+
+```{r}
+hfi %>%
+  summarise(cor(ef_legal_protection, ef_legal_integrity, use = "complete.obs"))
+```
+
+

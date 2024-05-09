@@ -1,0 +1,103 @@
+---
+title: "Lab 1: Intro to R"
+author: ""
+date: "Date of lab session"
+output: oilabs::lab_report
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(openintro)
+library(oilabs)
+```
+
+* * *
+
+```{r}
+data(arbuthnot)
+glimpse(arbuthnot)
+```
+
+
+### Exercise 1: 
+
+```{r eval = FALSE}
+arbuthnot$girls
+
+```
+
+
+### Exercise 2:
+As per the Plot: 
+Overall there is a positive trend between girls baptized over the years from 1629 to 1710.
+Where their is a negative trend initially from 1629 to 1631,a rapid negative trend from 1640 to 1648 and 1702 to 1704.
+A rapid positive trend can be observed from 1658 to 1663 and 1704 to 1706.
+
+
+```{r}
+ggplot(data = arbuthnot, aes(x = year, y = girls)) +
+  geom_line()
+```
+
+
+### Exercise 3:
+the plot shows that the proportion of boys born over time is continuously changing and it peaked in 1661
+
+```{r echo = FALSE}
+arbuthnot <- arbuthnot %>%
+  mutate(Overall = boys + girls)
+arbuthnot <- arbuthnot %>%
+  mutate(boy_ratio = boys / Overall)
+arbuthnot
+ggplot(data = arbuthnot, aes(x = year, y = boy_ratio)) + 
+  geom_line()
+```
+
+
+### Exercise 4:
+
+years included are 1940 to 2002, dimensions of the data frame is 63 rows and 3 columns and the variable names are year, boys, girls.
+
+```{r}
+present
+present$year
+glimpse(present)
+```
+
+
+### Exercise 5:
+In general, the number of girls and boys from present data frame are higher than arbuthnot data frame. The magnitude of present data frame and arbuthnot data frame is not same.
+```{r}
+arbuthnot$girls / present$girls
+arbuthnot$boys / present$boys
+
+```
+
+### Exercise 6:
+From the plot it is evident that the proportion of boys born from 1940 to 2002 is a negative trend (decreasing) and peaked in 1946.
+Yes, the arbuthnot's observation about boys being born in greater proportion than girls in the US holds true.
+
+```{r}
+present <- present %>%
+  mutate(Overall = boys + girls)
+present <- present %>%
+  mutate(boy_ratio = boys / Overall)
+present
+ggplot(data = present, aes(x = year, y = boy_ratio)) + 
+  geom_line()
+```
+
+
+### Exercise 7:
+1961, the year with most total number of births in the U.S.
+
+
+```{r}
+present
+present %>%
+  arrange(desc(Overall))
+
+
+```
+

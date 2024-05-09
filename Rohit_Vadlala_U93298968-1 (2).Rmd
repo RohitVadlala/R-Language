@@ -1,0 +1,131 @@
+---
+title: "Lab 2"
+author: ""
+date: "08-30-2023"
+output: oilabs::lab_report
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(oilabs)
+```
+
+* * *
+
+```{r}
+data (nycflights)
+names(nycflights)
+?nycflights
+glimpse(nycflights)
+```
+
+
+### Exercise 1: 
+When I look at three histograms, i see they are not same. The features revealed in one histogram are getting obscured in another. Histogram with less binwidth(here 15) has shown features clearly than the histogram with higher binwidths(here 150, default= 30)
+
+```{r}
+ggplot(data = nycflights, aes(x = dep_delay)) +
+  geom_histogram()
+ggplot(data = nycflights, aes(x = dep_delay)) +
+  geom_histogram(binwidth = 15)
+ggplot(data = nycflights, aes(x = dep_delay)) +
+  geom_histogram(binwidth = 150)
+
+```
+
+
+### Exercise 2:
+68 flights meet this criteria of heading towards SFO in february
+
+```{r}
+sfo_feb_flights <- nycflights %>%
+  filter(dest == "SFO", month == 2)
+sfo_feb_flights
+sfo_feb_flights %>%
+  summarise(row = n())
+```
+
+
+### Exercise 3:
+The distribution of the arrival delays of sfo_feb_flights are unimodal(that is with one peak) and right skewed. The summary statistics of the distribution are: mean(mean_SFOFebFlights) = -4.5, median(median_SFOFebFlights) = -11 , sample size (n_SFOFebFlights)= 68,Inter quartile range = 23.25.
+As mean > median, the distribution is right skewed (that is positively skewed).
+
+```{r}
+ggplot(data = sfo_feb_flights, aes(x = arr_delay)) +
+  geom_histogram()
+ggplot(data = sfo_feb_flights, aes(x = arr_delay)) +
+  geom_histogram(binwidth = 10)
+sfo_feb_flights %>%
+  summarise(mean_SFOFebFlights   = mean(arr_delay), 
+            median_SFOFebFlights = median(arr_delay), 
+            n_SFOFebFlights        = n(),
+            InterQuartileRange   =  IQR(arr_delay))
+```
+
+
+### Exercise 4:
+DL and UA carriers has the most variable arrival delays with Inter Quartile Range for both DL and UA carriers being 22 (highest).
+
+```{r}
+sfo_feb_flights %>%
+  group_by(carrier) %>%
+  summarise(median_SFOFebFlights = median(arr_delay), InterQuartileRange = IQR(arr_delay), n_flights = n())
+```
+
+
+### Exercise 5:
+
+Here, the lowest mean departure delay for nyc flights for the month: 5.88 for 10th month is the lowest and the lowest median departure delay for nyc flights for the month: 9th and 10th month have got lowest median values being at -3. The mean and median can be helpful to understand the distribution of the data. mean can only give the average of the data, as it takes outliers(extreme values) into account which cannot give the exact departure delay specifically. median can give the middle most value of the data and it does not take outliers, but it does not give the appropriate picture of the distribution. 
+
+```{r}
+nycflights %>%
+  group_by(month) %>%
+  summarise(mean_NYCFlights = mean(dep_delay)) %>%
+  arrange(mean_NYCFlights)
+nycflights %>%
+  group_by(month) %>%
+  summarise(median_NYCFlights = median(dep_delay)) %>%
+  arrange(median_NYCFlights)
+```
+
+
+### Exercise 6:
+LGA airport is the best one to choose, as it has got 72.79% of flights running on time.
+
+```{r}
+nycflights <- nycflights %>%
+  mutate(departure_kind = ifelse(dep_delay < 5, "on time", "delayed"))
+nycflights %>%
+  group_by(origin) %>%
+  summarise(ot_dep_rate = sum(departure_kind == "on time") / n()) %>%
+  arrange(desc(ot_dep_rate))
+ggplot(data = nycflights, aes(x = origin, fill = departure_kind)) +
+  geom_bar()
+```
+
+
+### Exercise 7:
+
+```{r}
+nycflights <- nycflights %>%
+  mutate(avg_speed = distance / (air_time/60))
+nycflights
+```
+
+### Exercise 8:
+The average speed has been increased steadily till 1000 miles and after 1000 miles the average speed remained relatively same.
+```{r}
+ggplot(data = nycflights, aes(x = distance, y = avg_speed)) +
+  geom_point()
+```
+
+### Exercise 9:
+cut off time = in the range of approximately 48 to 53
+```{r}
+datacarrier_flights <- nycflights %>%
+  filter(carrier == c("AA", "DL" , "UA"))
+ggplot(data = datacarrier_flights, aes(x = dep_delay, y = arr_delay, col = carrier)) +
+  geom_point()
+```
+

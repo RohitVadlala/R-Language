@@ -1,0 +1,33 @@
+---
+title: "Lab 10.1: Getting Started"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+library(tidyverse)
+library(openintro)
+```
+
+
+### Exercise 1
+
+In Case 3, time series data is employed to examine the product's performance over a prolonged period.
+Potential predictor factors include the geographical destinations for auto shipments and the degree of customer demand for automobiles can be considered as the examples of potential predictor factors.
+To make a forecast, there are five main factors that are required.
+
+
+### Exercise 2
+
+
+
+1. Problem definition: The primary objective is to increase the precision of resale value projections.
+
+2. Information gathering: Experts were employed to estimate resale prices, but there was resistance to their hiring due to concerns about job security, which reduced the amount of data that was supplied.
+
+3. Preliminary analysis (Graphs): Unfortunately, there was no graphical analysis in this instance.
+
+4.Model selection and fitting: A statistical model was used to create the forecast.
+
+5.Model application and assessment: A few team members believed that using the model would make it more difficult for them to maintain their jobs.
