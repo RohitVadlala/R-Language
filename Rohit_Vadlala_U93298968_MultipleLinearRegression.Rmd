@@ -1,0 +1,263 @@
+---
+title: "Lab 9: Multiple Linear Regression"
+author: ""
+date: "`r Sys.Date()`"
+output: openintro::lab_report
+---
+
+```{r}
+library(tidyverse)
+library(openintro)
+library(GGally)
+library(broom)
+```
+
+```{r}
+glimpse(evals)
+?evals
+```
+
+
+
+### Exercise 1
+
+
+This can be  considered as an observational study. As there are no control groups and experimental groups. Here there is no control group, in order to compare with "more attractive" teachers. As simple correlation does not prove causality, so it is not possible to identify whether beauty directly impacts differences in course ratings. The variables that are not related to a professors physical beauty might impact different evaluation scores. It is more practical to investigate on the possible relationship between a professor's beauty and student evaluations.
+
+
+### Exercise 2
+
+
+Here, the distribution is left-skewed or negatively skewed. The distribution showing that the students rate courses with very high ratings. Here, the Students have far more  positive evaluations than negative evaluations with respect towards their professors. I thought the distribution would be some what unimodal or normal distribution. I expected that the distribution would be unimodal or normal, as i felt the ratings for the more professors would be average and afew of them would be evaluated to the extreme values that is in the form of excellent or unsatisfactory. 
+
+
+```{r}
+hist(evals$score, main = "Histogram: Scores", xlab = "Score")
+```
+
+
+
+### Exercise 3
+
+
+Here, the most important aspect to be focussed in the distributions is even after having a varied distributions and varied range between beauty-average ratings for professors who attended non-English and English institutions  the medians of both the distributions are very close (for non-english schools the median is slightly higher). The Beauty-average scores ranges from 2 to 8, where 8 is the highest one for professors that were trained in English-speaking schools. From the box plot, it is showing that the average beauty score of students of non-English schools ranges from 3.5 to 5.5 approximately and it do have an outlier which is located around 3. when it comes to the non-English group data, it is  clustered heavily around its median.
+
+
+```{r}
+boxplot(evals$bty_avg ~ evals$language, main = "
+Boxplot- Average Beauty Score V/S Language", ylab = "Beauty Average", xlab = "Language")
+
+```
+
+
+
+### Exercise 4
+
+
+When i look at the plots of both, i could see that the 'jitter()' method is adding noise to the data, due to this the data points are more varied, which ultimately results in the overlapping points.This reveals larger datasets than initially believed, emphasizing the significance of specific data points.
+
+
+```{r}
+plot(evals$score ~ evals$bty_avg)
+plot(jitter(evals$score) ~ jitter(evals$bty_avg))
+```
+
+
+
+### Exercise 5
+
+
+Here, the Linear Model Equation can be written as y-hat = 3.88034 + 0.06664(bty_avg). From the equation it is signifying the fact that when score rises by 0.06664 then there will be a unit increase in bty_avg. A p-value of less than .001 indicates that this relationship is very unlikely to arise by chance.This is a low adj. R-squared value of ~3% of the variation in the dependent variable predicted by the bty_avg score. It is crucial to keep in mind that although while the average beauty score appears to matter, the model's R-squared value is notably low, indicating that it might not be suitable for the data. Consequently, the predictive value of beauty average could be constrained.
+
+```{r}
+m_bty <- lm(score ~ bty_avg, data = evals)
+summary(m_bty)
+
+ggplot(data = evals, aes(x = bty_avg, y = score)) +
+  geom_jitter() +
+  geom_smooth(method = "lm")
+ggplot(data = evals, aes(x = bty_avg, y = score)) +
+  geom_jitter() +
+  geom_smooth(method = "lm", se = FALSE)
+
+```
+
+
+
+### Exercise 6
+
+
+From the plot, the residual plot clearly showed a left skewed or negatively skewed distribution. Also, the residuals are not evenly distributed (left skewed), nor are they centered around the zero line, while appearing to have a reasonably constant spread (albeit they are more densely occupied near the right end of the plot). The requirements are not being fulfilled.
+
+
+```{r}
+plot(x=m_bty$residuals, y= evals$bty_avg) +
+abline(h = 0, lty = 3)  
+hist(m_bty$residuals, breaks = 35)
+qqnorm(m_bty$residuals)
+qqline(m_bty$residuals)
+ggplot(data = evals, aes(x = bty_f1lower, y = bty_avg)) +
+  geom_point()
+evals %>% 
+  summarise(cor(bty_avg, bty_f1lower))
+evals %>%
+  select(contains("bty")) %>%
+  ggpairs()
+m_bty_gen <- lm(score ~ bty_avg + gender, data = evals)
+tidy(m_bty_gen)
+
+```
+
+
+
+### Exercise 7
+
+
+Based on the presumption that students do not have classes with more than one teacher, we may presume independence. With regard to the qq-plot, the majority of the data falls along the normal line; but, as you move up the scale, the points start to curve off somewhat but not enough to suggest non-normality. The displayed residuals show no discernible pattern and are distributed along the zero line. The conditions for this model are met.
+
+
+```{r}
+m_bty_gen = lm(score ~ bty_avg + gender, data = evals)
+qqnorm(m_bty_gen$residuals)
+qqline(m_bty_gen$residuals)
+plot(m_bty_gen$residuals)
+abline(h = 0, lty = 3)
+```
+
+
+
+### Exercise 8
+
+
+The parameter estimate for bty_avg changed slightly from 0.06664 to 0.07416 due to the gender variable. In spite of this, bty_avg is still a statistically significant score predictor. The R-squared value for this model is still fairly low, indicating that if a more important predictor is included in the model, the role of bty_avg in score prediction may be reduced.
+
+
+```{r}
+summary(m_bty_gen)
+summary(m_bty)
+
+```
+
+
+
+### Exercise 9
+
+
+The Equation of the Predicted Score = b0-hat + b1-hat(bty_avg) + b2-hat(1) = b0-hat + b1-hat(bty_avg) + b2-hat
+(scoreˆ=3.74734+0.074161×bty_avg+0.17239)
+The male gender will tend to have a higher course evaluation score than others.
+
+
+
+
+### Exercise 10
+
+
+R has added one additional line to the regression summary to take into account the fact that the rank variable contains three factors (teaching, tenure track, and tenured). Each category is referred to by R as an independent variable, but one is omitted.
+
+
+```{r}
+m_bty_rank <- lm(score ~ bty_avg + rank, data = evals)
+tidy(m_bty_rank)
+summary(m_bty_rank)
+names(m_bty_rank)
+```
+
+
+
+### Exercise 11
+
+
+I would expect the class level (upper or lower) to be unrelated to the professor score.I predict that, class level (upper or lower) or class profs variables will be having the greatest p-value. 
+
+```{r}
+m_full <- lm(score ~ rank + gender + ethnicity + language + age + cls_perc_eval 
+             + cls_students + cls_level + cls_profs + cls_credits + bty_avg, data = evals)
+tidy(m_full)
+```
+
+
+
+### Exercise 12
+
+
+I erred in my past judgments during the previous exercise. Actually, the cls_profs variable (number of professors teaching sections in the course sample: single, multiple) had the greatest p-value. This demonstrates that it has the lowest association with the score when compared to the other factors.
+
+```{r}
+m_full = lm(score ~ rank + ethnicity + gender + language + age + cls_perc_eval + 
+               cls_students + cls_level + cls_profs + cls_credits + bty_avg + pic_outfit + 
+               pic_color, data = evals)
+summary(m_full)
+```
+
+
+
+
+### Exercise 13
+
+
+When all other factors are held constant, the score increases by 0.1234929 when the ethnicity_not_minority variable is present.
+
+
+
+### Exercise 14
+
+
+After the cls_profs variable was removed, the coefficients and significance of the remaining variables modified. Most often, significance increased while most coefficients decreased.
+
+```{r}
+fit_bty_full_minus_cls_profs <- lm(score ~ rank + gender + ethnicity + language + age + cls_perc_eval 
+             + cls_students + cls_level + cls_credits + bty_avg, data = evals)
+
+summary(fit_bty_full_minus_cls_profs)
+```
+
+
+
+### Exercise 15
+
+
+The equation for the predicted score can be demonstrated as,
+Predicted Score = b0-hat + b1-hat(ethnicity) + b2-hat(gender) + b3-hat(language) + b4-hat(age) + b5-hat(cls_perc_eval) + b6-hat(cls_credits) + b7-hat(bty_avg) + b8-hat(pic_color)
+
+
+```{r}
+backwards = lm(score ~ ethnicity + gender + language + age + cls_perc_eval + cls_credits + bty_avg + pic_color, data = evals)
+summary(backwards)
+```
+
+
+
+
+### Exercise 16
+
+
+Assuming independence, the conditions for homoscedasticity and normality appear to be satisfied. The residual dispersion along the zero line exhibits no pattern at all, and the majority of the data points nearly follow the normal line (with some acceptable fluctuation at the ends), as seen by the qq-plot.
+
+```{r}
+qqnorm(backwards$residuals)
+qqline(backwards$residuals)
+plot(backwards$residuals)
+abline(h = 0, lty = 3)
+```
+
+
+
+
+### Exercise 17
+
+
+I believe that this may have an impact on the linear regression model due to potential data overlap or even concerns about multicollinearity. Additionally, it seems likely to contradict our premise of independence because there is a higher likelihood that at least one student from each course has assessed another teacher in the sample, causing an interdependence between observations.
+
+
+
+### Exercise 18
+
+
+According to this model, a professor is more likely to receive a high evaluation score if he is a male who went to an English-speaking school, is not a member of a minority group, teaches a one-credit course, uses a color photo, is young, has a high average beauty score, and has a high percentage of students who complete course evaluations.
+
+### Exercise 19
+
+
+I'm not sure if I could extend similar conclusions to professors at other universities. Since the sample was only representative of the school in Austin, Texas, these findings might not generalize to other contexts because each institution has its own unique environment and set of distinguishing characteristics.
+
